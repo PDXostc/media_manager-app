@@ -37,6 +37,6 @@ su app -c "pkgcmd -u -n JLRPOCX003 -q"
 %files
 %defattr(-,root,root,-)
 /opt/usr/apps/.preinstallWidgets/JLRPOCX003.MediaManager.wgt
-%dir /home/app/.cache/media-manager-artwork/
-/home/app/.cache/media-manager-artwork/simpleserver.py
+%dir /home/app/content/Images/media-manager-artwork/
+/home/app/content/Images/media-manager-artwork/simpleserver.py
 

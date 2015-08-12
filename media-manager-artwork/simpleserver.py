@@ -5,7 +5,7 @@ import BaseHTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 
-os.chdir("/home/app/.cache/media-manager-artwork")
+os.chdir("/home/app/content/Images/media-manager-artwork")
 
 HandlerClass = SimpleHTTPRequestHandler
 ServerClass  = BaseHTTPServer.HTTPServer
