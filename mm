@@ -17,13 +17,13 @@ case "$action" in
         echo "Starting media manager services..."
 		rm -f /home/app/.config/lightmediascannerd/*
 		ls /home/app/.config/lightmediascannerd/
-		rm -f /home/app/.cache/media-manager-artwork/*.jpg
-		ls /home/app/.cache/media-manager-artwork/
+		rm -f /home/app/content/Images/media-manager-artwork/*.jpg
+		ls /home/app/content/Images/media-manager-artwork/
         lightmediascannerd -S -D /mnt &
         sleep 2
         rygel -n lo &
         LD_LIBRARY_PATH=/opt/genivi/lib media-manager &
-        cd /home/app/.cache/media-manager-artwork/ && python /home/app/.cache/media-manager-artwork/simpleserver.py &
+        cd /home/app/content/Images/media-manager-artwork/ && python /home/app/content/Images/media-manager-artwork/simpleserver.py &
         sleep 1
         LD_LIBRARY_PATH=/opt/genivi/lib xwalk-launcher -d  JLRPOCX003.MediaManager
         ;;
