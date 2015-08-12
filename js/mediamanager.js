@@ -111,7 +111,7 @@ function generateRootListing(path){
 function getRootItems(pathObj){
     var rootPromise = new $.Deferred();
 
-    Browser.listContainers(pathObj,0,100,["DisplayName","Path","Type","TypeEx"],
+    Browser.listContainers(pathObj,0,100,["DisplayName","Path","Type","TypeEx","AlbumArtURL"],
         function(obj,err){
             rootPromise.resolve(obj);
     });
@@ -181,7 +181,7 @@ function listItems(itemSet){
             
             clone.querySelector(".content-listing").setAttribute("data-item_path",itemSet[item].Path);
 
-            var artwork = getAlbumImage(itemSet[item].Artist);
+            var artwork = getAlbumImage(itemSet[item].AlbumArtURL);
             clone.querySelector(".content-listing img.albumArt").setAttribute("src",artwork);
             
             var nested = $("#libraryCloseSubPanelButton").data("nested");
@@ -191,7 +191,7 @@ function listItems(itemSet){
             if(root == nested){
                 clone.querySelector(".content-listing img.albumArt").style.visibility = "hidden";
             }else{
-                var artwork = getAlbumImage(itemSet[item].Artist);
+                var artwork = getAlbumImage(itemSet[item].AlbumArtURL);
                 clone.querySelector(".content-listing img.albumArt").setAttribute("src",artwork);                
             }
             
@@ -325,8 +325,7 @@ function generatePlaylistElementsPromise(input_data){
 //Returns a local webserver 
 function getAlbumImage(filepath){
     if(filepath != undefined && filepath != "undefined"){
-        var fragment = filepath.substring(filepath.lastIndexOf("/"),filepath.length);
-        return "http://127.0.0.1:8000"+fragment;    
+        return filepath;
     }else{
         return "images/cover_album.png";
     }
@@ -396,19 +395,7 @@ function searchAndDisplay(searchTerm){
         }
         c--;
     }
-
-
-  /*  
-    var i = set.length+1;
-    while(i >= 0){
-
-        i--;
-    }
-
-    var cat = searchCategories.indexOf(searchCategories);
     
-    searchString = "";
-    */
     console.log(cat);
 
     switch(cat){
@@ -484,7 +471,7 @@ function displayChildren(tapEvent){
 
 function getChildren(path){
 
-	Browser.listContainers({"Path":path},0,1000,['DisplayName','Type','Path','AlbumArtURL','TypeEx'],function(obj,err){
+	Browser.listContainers({"Path":path},0,1000,['DisplayName','Type','Path','AlbumArtURL','TypeEx'],function(obj,err){ 
 		if(obj.length > 0){
             var nestedPath = pushPath(path); //pushes path to items
 			listItems(obj);
@@ -549,9 +536,11 @@ function updatePlayButton(status){
     console.log("updating playbutton");
 
     if(status == "PAUSED"){
-        $("#playButton").removeClass("btn-play-pause-pause");
-    }else if(status == "PLAYING"){
-        $("#playButton").addClass("btn-play-pause-pause");
+        $("#playButton").removeClass("fa-play");
+        $("#playButton").addClass("fa-pause");
+    } else if(status == "PLAYING") {
+        $("#playButton").removeClass("fa-pause");
+        $("#playButton").addClass("fa-play");
     }
 
 /*
@@ -599,15 +588,15 @@ function updateRepeatButton(repeatState){
         case "REPEAT":
             // change to all tracks.
             $("#repeatButton span").html("All Tracks");
-            $("#repeatButton").addClass("btn-repeat-on");
+            $("#repeatButton").addClass("blue-viv");
         break;
         case "REPEAT_SINGLE":
             $("#repeatButton span").html("Current Track");
-            $("#repeatButton").addClass("btn-repeat-on");
+            $("#repeatButton").addClass("blue-viv");
         break;
         case "NO_REPEAT":
             $("#repeatButton span").html("OFF");
-            $("#repeatButton").removeClass("btn-repeat-on");
+            $("#repeatButton").removeClass("blue-viv");
         break;
     }
 }
@@ -615,9 +604,9 @@ function updateRepeatButton(repeatState){
 function updateShuffleButton(shuffleStatus){
 
     if(shuffleStatus == true){
-            $("#shuffleButton").addClass("btn-shuffle-on");
+            $("#shuffleButton").addClass("blue-viv");
     }else if(shuffleStatus == false){
-            $("#shuffleButton").removeClass("btn-shuffle-on");
+            $("#shuffleButton").removeClass("blue-viv");
     }
     //$("#shuffleButton").data("shuffle_state",shuffledStatus);
 
@@ -864,3 +853,112 @@ function closeLibraryWindow() {
         var rootVal = $("#libraryCloseSubPanelButton").data("root");
         $("#libraryCloseSubPanelButton").data("nested",rootVal);
 }
+
+var coverScroll = {};
+var libraryScroll = {};
+hold ;
+
+$(document).ready(function(){
+
+    setTimeout(function(){
+
+         mminit();
+
+        //temporary
+        clearTimeout(volumeTimer);
+
+        $('.libraryButton').click(function(){
+            $('#musicLibrary').addClass('toShow').addClass('fadeInRight').addClass('animated');
+            
+            var libClose = $("#libraryCloseSubPanelButton");
+            libClose.data("nested",libClose.data("root"));
+
+            var path = JSON.parse(libClose.data("root"));
+            generateRootListing({"Path":path[0]});
+
+            $("#searchingBox").val("");
+        });
+
+        $('#libraryCloseSubPanelButton').click(function(){
+            goToPreviousList();
+        });
+
+        $("#closeLibrary").click(function(){
+            closeLibraryWindow();
+        });
+
+        $("#playButton").click(function(ev){
+            playPause();
+        });
+
+        $("#fastFowardButton").on("touchstart",function(ev){
+            console.log("New touchstart! ff");
+            lastStamp = Date.now();
+            $("#fastFowardButton").addClass("white");
+            hold = setInterval(function(){
+                fastSeek(1);
+            },500);
+        });
+
+        $("#fastRewindButton").on("touchstart",function(ev){
+            console.log("New touchstart! fr");
+            lastStamp = Date.now();
+            $("#fastRewindButton").addClass("white");
+            hold = setInterval(function(){
+                fastSeek(-1);
+            },500);
+        });
+
+        $("#fastFowardButton, #fastRewindButton").on("touchend",function(ev){
+            console.log("New touchend!");
+            $("#fastFowardButton,#fastRewindButton").removeClass("white");
+            clearInterval(hold);
+        });
+
+
+        $("#set-media-time-slider").on("touchstart",function(ev){
+            setPlaybackPosition(ev.originalEvent.touches[0].pageX - 40)
+        });
+
+        $("#nextButton").on("touchstart",function(ev){
+            $("#nextButton").addClass("white");
+        }).on("touchend",function(ev){
+            $("#nextButton").removeClass("white");
+            next();
+        })
+
+        $("#prevButton").on("touchstart",function(ev){
+            $("#prevButton").addClass("white");
+            
+        }).on("touchend",function(ev){
+            $("#prevButton").removeClass("white");
+            previous();
+        });
+
+        $("#repeatButton").on("touchend",function(ev){
+            var repeatState = $(this).data("repeat_next_state");
+            Player.setRepeated(repeatState,function(r,e){});
+        });
+
+        $("#shuffleButton").on("touchend",function(ev){
+            newState = ($("#shuffleButton").hasClass("blue-viv"))? false : true;
+            Player.setShuffled(newState,function(r,err){console.log("setting shuffle to "+newState)});
+        });
+
+        $("#searchButton").click(function(ev){ 
+            console.log("Search event fired");
+            var searchVal = $("#searchingBox").val();
+            console.log(searchVal);
+            searchAndDisplay(searchVal);
+        });
+/*
+        $("#searchingBox").focus(function(ev){
+            $("#searchingBox").val("");
+        });
+*/
+        coverScroll = new IScroll(document.getElementById("scroll-container"),{scrollX:true});
+        libraryScroll = new IScroll(document.getElementById("listingWrapper"),{"tap":true});
+    },500);
+    
+});
+
