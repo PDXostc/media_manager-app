@@ -53,7 +53,7 @@ endif
 install: deploy
 ifndef OBS
 	scp mm app@$(TIZEN_IP):
-	scp -r media-manager-artwork app@$(TIZEN_IP):.cache/
+	scp -r media-manager-artwork app@$(TIZEN_IP):content/Images/
 	#ssh root@$(TIZEN_IP) "rpm --force -ivh weekeyboard-0.0.2-0.i686.rpm"
 	ssh app@$(TIZEN_IP) "chmod +x mm"
 	ssh app@$(TIZEN_IP) "export DBUS_SESSION_BUS_ADDRESS='unix:path=/run/user/5000/dbus/user_bus_socket' && xwalkctl | egrep -e 'JLRPOCX003.MediaManager' | awk '{print $1}' | xargs --no-run-if-empty xwalkctl -u"
@@ -71,9 +71,9 @@ all:
 	@echo "Nothing to build"
 
 install_obs:
-	mkdir -p $(DESTDIR)/home/app/.cache/media-manager-artwork
-	cp media-manager-artwork/simpleserver.py $(DESTDIR)/home/app/.cache/media-manager-artwork/ 
-	chmod +x $(DESTDIR)/home/app/.cache/media-manager-artwork/simpleserver.py
+	mkdir -p $(DESTDIR)/home/app/content/Images/media-manager-artwork
+	cp media-manager-artwork/simpleserver.py $(DESTDIR)/home/app/content/Images/media-manager-artwork/ 
+	chmod +x $(DESTDIR)/home/app/content/Images/media-manager-artwork/simpleserver.py
 	mkdir -p $(DESTDIR)/opt/usr/apps/.preinstallWidgets
 	cp -r JLRPOCX003.MediaManager.wgt $(DESTDIR)/opt/usr/apps/.preinstallWidgets/
 
